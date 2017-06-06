@@ -1,0 +1,50 @@
+{
+    "artifactsBaseUrl": {
+        "value": "https://rgarmsamples.blob.core.windows.net/talenahdi"
+    },
+    "firstName": {
+        "value": "First Name"
+    },
+    "lastName": {
+        "value": "Last Name"
+    },
+    "company": {
+        "value": "Talena"
+    },
+    "email": {
+        "value": "name@domain.com"
+    },
+    "phone": {
+        "value": "+12345678901"
+    },
+    "title": {
+        "value": "Senior Developer"
+    },
+    "licenseKey": {
+        "value": "1234567890"
+    },
+    "clusterName": {
+        "value": "rgtalena"
+    },
+    "username": {
+        "value": "talena"
+    },
+    "password": {
+        "value": "Talena@123"
+    },
+    "clusterLoginUserName": {
+        "value": "admin"
+    },
+    "clusterLoginPassword": {
+        "value": "Talena@123"
+    },
+    "sharedKey": {
+        "value": "abc123"
+    },
+    "location1": {
+        "value": "West US"
+    },
+    "location2": {
+        "value": "East US"
+    }
+}

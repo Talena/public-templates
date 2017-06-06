@@ -1,0 +1,349 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "artifactsBaseUrl": {
+            "type": "string",
+            "metadata": {
+                "artifactsBaseUrl": "Base URL of the Publisher Template gallery package"
+            }
+        },
+        "firstName": {
+            "type": "string"
+        },
+        "lastName": {
+            "type": "string"
+        },
+        "company": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "phone": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "licenseKey": {
+            "type": "string"
+        },
+        "clusterName": {
+            "type": "string"
+        },
+        "username": {
+            "type": "securestring"
+        },
+        "password": {
+            "type": "securestring"
+        },
+        "clusterLoginUserName": {
+            "type": "securestring"
+        },
+        "clusterLoginPassword": {
+            "type": "securestring"
+        },
+        "sharedKey": {
+            "type": "securestring"
+        },
+        "location1": {
+            "type": "string"
+        },
+        "location2": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "scriptsUri": "[concat(parameters('artifactsBaseUrl'), '/')]",
+        "vnetBaseName": "vnet",
+        "vnet1Name": "[concat(variables('vnetBaseName'), '1')]",
+        "vnet1SubnetName": "subnet",
+        "vnet1AddressPrefix": "10.1.0.0/16",
+        "vnet1SubnetAddressPrefix": "10.1.1.0/24",
+        "vnet1GatewaySubnetAddressPrefix": "10.1.2.0/24",
+        "vnet1StartAddress": "10.1.1.50",
+        "vnet2Name": "[concat(variables('vnetBaseName'), '2')]",
+        "vnet2AddressPrefix": "10.2.0.0/16",
+        "vnet2SubnetName": "subnet",
+        "vnet2SubnetAddressPrefix": "10.2.1.0/24",
+        "vnet2GatewaySubnetAddressPrefix": "10.2.2.0/24"
+    },
+    "resources": [
+        {
+            "name": "vnet",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'vnet.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location1": {
+                        "value": "[parameters('location1')]"
+                    },
+                    "location2": {
+                        "value": "[parameters('location2')]"
+                    },
+                    "virtualNetworkName1": {
+                        "value": "[variables('vnet1Name')]"
+                    },
+                    "addressPrefix1": {
+                        "value": "[variables('vnet1AddressPrefix')]"
+                    },
+                    "subnet1Name1": {
+                        "value": "[variables('vnet1SubnetName')]"
+                    },
+                    "subnet1Prefix1": {
+                        "value": "[variables('vnet1SubnetAddressPrefix')]"
+                    },
+                    "gatewaySubnetPrefix1": {
+                        "value": "[variables('vnet1GatewaySubnetAddressPrefix')]"
+                    },
+                    "virtualNetworkName2": {
+                        "value": "[variables('vnet2Name')]"
+                    },
+                    "addressPrefix2": {
+                        "value": "[variables('vnet2AddressPrefix')]"
+                    },
+                    "subnet1Name2": {
+                        "value": "[variables('vnet2SubnetName')]"
+                    },
+                    "subnet1Prefix2": {
+                        "value": "[variables('vnet2SubnetAddressPrefix')]"
+                    },
+                    "gatewaySubnetPrefix2": {
+                        "value": "[variables('vnet2GatewaySubnetAddressPrefix')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "gateway",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/vnet"
+            ],            
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'gateway.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "location1": {
+                        "value": "[parameters('location1')]"
+                    },
+                    "location2": {
+                        "value": "[parameters('location2')]"
+                    },
+                    "virtualNetworkName1": {
+                        "value": "[variables('vnet1Name')]"
+                    },
+                    "gatewayPublicIPName1": {
+                        "value": "gatewayIP1"
+                    },
+                    "gatewayName1": {
+                        "value": "gateway1"
+                    },
+                    "connectionName1": {
+                        "value": "vnet1_vnet2"
+                    },
+                    "virtualNetworkName2": {
+                        "value": "[variables('vnet2Name')]"
+                    },
+                    "gatewayPublicIPName2": {
+                        "value": "gatewayIP2"
+                    },
+                    "gatewayName2": {
+                        "value": "gateway2"
+                    },
+                    "connectionName2": {
+                        "value": "vnet2_vnet1"
+                    },
+                    "sharedKey": {
+                        "value": "[parameters('sharedKey')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "talena",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/vnet"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'Talena/mainTemplate.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "artifactsBaseUrl": {
+                        "value": "[concat(variables('scriptsUri'), 'Talena')]"
+                    },
+                    "firstName": {
+                        "value": "[parameters('firstName')]"
+                    },
+                    "lastName": {
+                        "value": "[parameters('lastName')]"
+                    },
+                    "company": {
+                        "value": "[parameters('company')]"
+                    },
+                    "email": {
+                        "value": "[parameters('email')]"
+                    },
+                    "phone": {
+                        "value": "[parameters('phone')]"
+                    },
+                    "title": {
+                        "value": "[parameters('title')]"
+                    },
+                    "licenseKey": {
+                        "value": "[parameters('licenseKey')]"
+                    },
+                    "clusterName": {
+                        "value": "[parameters('clusterName')]"
+                    },
+                    "nodeCount": {
+                        "value": 3
+                    },
+                    "username": {
+                        "value": "[parameters('username')]"
+                    },
+                    "password": {
+                        "value": "[parameters('password')]"
+                    },
+                    "sshPublicKey": {
+                        "value": ""
+                    },
+                    "authenticationType": {
+                        "value": "password"
+                    },
+                    "location": {
+                        "value": "[parameters('location1')]"
+                    },
+                    "vmSize": {
+                        "value": "Standard_D14_v2"
+                    },
+                    "vnetNewOrExisting": {
+                        "value": "existing"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnet1Name')]"
+                    },
+                    "vnetSubnetName": {
+                        "value": "[variables('vnet1SubnetName')]"
+                    },
+                    "vnetAddressPrefix": {
+                        "value": "[variables('vnet1AddressPrefix')]"
+                    },
+                    "vnetSubnetAddressPrefix": {
+                        "value": "[variables('vnet1SubnetAddressPrefix')]"
+                    },
+                    "vnetStartAddress": {
+                        "value": "[variables('vnet1StartAddress')]"
+                    },
+                    "vnetRGName": {
+                        "value": "[resourceGroup().name]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "hdi1",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/vnet"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'HDI/mainTemplate.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "clusterName": {
+                        "value": "[concat(parameters('clusterName'), 'hdi1')]"
+                    },
+                    "clusterLoginUserName": {
+                        "value": "[parameters('clusterLoginUserName')]"
+                    },
+                    "clusterLoginPassword": {
+                        "value": "[parameters('clusterLoginPassword')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location1')]"
+                    },
+                    "clusterWorkerNodeCount": {
+                        "value": 4
+                    },
+                    "sshUserName": {
+                        "value": "[parameters('username')]"
+                    },
+                    "sshPassword": {
+                        "value": "[parameters('password')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnet1Name')]"
+                    },
+                    "vnetSubnetName": {
+                        "value": "[variables('vnet1SubnetName')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "hdi2",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/vnet"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'HDI/mainTemplate.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "clusterName": {
+                        "value": "[concat(parameters('clusterName'), 'hdi2')]"
+                    },
+                    "clusterLoginUserName": {
+                        "value": "[parameters('clusterLoginUserName')]"
+                    },
+                    "clusterLoginPassword": {
+                        "value": "[parameters('clusterLoginPassword')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location2')]"
+                    },
+                    "clusterWorkerNodeCount": {
+                        "value": 4
+                    },
+                    "sshUserName": {
+                        "value": "[parameters('username')]"
+                    },
+                    "sshPassword": {
+                        "value": "[parameters('password')]"
+                    },
+                    "vnetName": {
+                        "value": "[variables('vnet2Name')]"
+                    },
+                    "vnetSubnetName": {
+                        "value": "[variables('vnet2SubnetName')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

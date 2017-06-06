@@ -1,0 +1,260 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+    "handler": "Microsoft.Compute.MultiVm",
+    "version": "0.1.2-preview",
+    "parameters": {
+        "basics": [
+            {
+                "name": "firstName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "First Name",
+                "defaultValue": "",
+                "toolTip": "First Name",
+                "constraints": {
+                    "required": true
+                }
+            },
+            {
+                "name": "lastName",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Last Name",
+                "defaultValue": "",
+                "toolTip": "Last Name",
+                "constraints": {
+                    "required": true
+                }
+            },
+            {
+                "name": "company",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Company",
+                "defaultValue": "",
+                "toolTip": "Company",
+                "constraints": {
+                    "required": true
+                }
+            },
+            {
+                "name": "email",
+                "type": "Microsoft.Common.TextBox",
+                "label": "E-mail",
+                "defaultValue": "",
+                "toolTip": "E-mail",
+                "constraints": {
+                    "required": true,
+                    "regex": "^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+                    "validationMessage": "Please provide a valid email address"
+                }
+            },
+            {
+                "name": "phone",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Telephone number",
+                "defaultValue": "",
+                "toolTip": "Telephone number",
+                "constraints": {
+                    "required": true
+                }
+            },
+            {
+                "name": "title",
+                "type": "Microsoft.Common.TextBox",
+                "label": "Title",
+                "defaultValue": "",
+                "toolTip": "Title",
+                "constraints": {
+                    "required": true
+                }
+            },
+            {
+                "name": "licenseKey",
+                "type": "Microsoft.Common.TextBox",
+                "label": "License Key",
+                "defaultValue": "",
+                "toolTip": "License Key from Talena",
+                "constraints": {
+                    "required": true
+                }
+            }
+        ],
+        "steps": [
+            {
+                "name": "Credentials",
+                "label": "Credentials settings",
+                "subLabel": {
+                    "preValidation": "Configure the credentials for the cluster",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "Cluster credentials settings",
+                "elements": [
+                    {
+                        "name": "username",
+                        "type": "Microsoft.Compute.UserNameTextBox",
+                        "label": "Linux username",
+                        "defaultValue": "",
+                        "toolTip": "Admin username for the virtual machines.",
+                        "constraints": {
+                            "required": true
+                        },
+                        "osPlatform": "Linux"
+                    },
+                    {
+                        "name": "sshCredentials",
+                        "type": "Microsoft.Compute.CredentialsCombo",
+                        "label": {
+                            "authenticationType": "Authentication type",
+                            "password": "Password",
+                            "confirmPassword": "Confirm password",
+                            "sshPublicKey": "SSH public key"
+                        },
+                        "toolTip": {
+                            "authenticationType": "",
+                            "password": "",
+                            "sshPublicKey": ""
+                        },
+                        "constraints": {
+                            "required": true
+                        },
+                        "options": {
+                            "hideConfirmation": false
+                        },
+                        "osPlatform": "Linux"
+                    }
+                ]
+            },
+            {
+                "name": "VMConfiguration",
+                "label": "VM settings",
+                "subLabel": {
+                    "preValidation": "VM configuration for the cluster",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "VM settings",
+                "elements": [
+                    {
+                        "name": "clusterName",
+                        "type": "Microsoft.Common.TextBox",
+                        "label": "Cluster name",
+                        "defaultValue": "",
+                        "toolTip": "Cluster name",
+                        "constraints": {
+                            "required": true
+                        }
+                    },
+                    {
+                        "name": "nodeCount",
+                        "type": "Microsoft.Common.DropDown",
+                        "label": "Number of nodes on the cluster",
+                        "defaultValue": "3",
+                        "toolTip": "",
+                        "constraints": {
+                            "allowedValues": [
+                                {
+                                    "label": "3",
+                                    "value": 3
+                                },
+                                {
+                                    "label": "5",
+                                    "value": 5
+                                },
+                                {
+                                    "label": "10",
+                                    "value": 10
+                                }
+                            ]
+                        },
+                        "visible": true
+                    },
+                    {
+                        "name": "vmSize",
+                        "type": "Microsoft.Compute.SizeSelector",
+                        "label": "Virtual machine size",
+                        "toolTip": "The size of virtual machine to provision for each cluster node.",
+                        "recommendedSizes": [
+                            "Standard_D14_v2"
+                        ],
+                        "constraints": {
+                            "allowedSizes": [
+                                "Standard_D14_v2"
+                            ]
+                        },
+                        "osPlatform": "Linux",
+                        "count": "[steps('VMConfiguration').nodeCount]"
+                    }
+                ]
+            },
+            {
+                "name": "Network",
+                "label": " Network configuration",
+                "subLabel": {
+                    "preValidation": "Configure the network for the cluster",
+                    "postValidation": "Done"
+                },
+                "bladeTitle": "Network settings",
+                "elements": [
+                    {
+                        "name": "vnetSelector",
+                        "type": "Microsoft.Network.VirtualNetworkCombo",
+                        "label": {
+                            "virtualNetwork": "Virtual network",
+                            "subnets": "Subnets"
+                        },
+                        "toolTip": {
+                            "virtualNetwork": "",
+                            "subnets": ""
+                        },
+                        "defaultValue": {
+                            "name": "vnet01",
+                            "addressPrefixSize": "/27"
+                        },
+                        "constraints": {
+                            "minAddressPrefixSize": "/27"
+                        },
+                        "options": {
+                            "hideExisting": false
+                        },
+                        "subnets": {
+                            "subnet1": {
+                                "label": "Subnet",
+                                "defaultValue": {
+                                    "name": "subnet-1",
+                                    "addressPrefixSize": "/27"
+                                },
+                                "constraints": {
+                                    "minAddressPrefixSize": "/27",
+                                    "minAddressCount": "[steps('VMConfiguration').nodeCount]",
+                                    "requireContiguousAddresses": true
+                                }
+                            }
+                        },
+                        "visible": true
+                    }
+                ]
+            }
+        ],
+        "outputs": {
+            "firstName": "[basics('firstName')]",
+            "lastName": "[basics('lastName')]",
+            "company": "[basics('company')]",
+            "email": "[basics('email')]",
+            "phone": "[basics('phone')]",
+            "title": "[basics('title')]",
+            "licenseKey": "[basics('licenseKey')]",
+            "username": "[steps('Credentials').username]",
+            "clusterName": "[steps('VMConfiguration').clusterName]",
+            "nodeCount": "[int(steps('VMConfiguration').nodeCount)]",
+            "vmSize": "[steps('VMConfiguration').vmSize]",
+            "location": "[location()]",
+            "authenticationType": "[steps('Credentials').sshCredentials.authenticationType]",
+            "password": "[steps('Credentials').sshCredentials.password]",
+            "sshPublicKey": "[steps('Credentials').sshCredentials.sshPublicKey]",
+            "vnetNewOrExisting": "[steps('Network').vnetSelector.newOrExisting]",
+            "vnetAddressPrefix": "[steps('Network').vnetSelector.addressPrefix]",
+            "vnetName": "[steps('Network').vnetSelector.name]",
+            "vnetRGName": "[steps('Network').vnetSelector.resourceGroup]",
+            "vnetSubnetName": "[steps('Network').vnetSelector.subnets.subnet1.name]",
+            "vnetSubnetAddressPrefix": "[steps('Network').vnetSelector.subnets.subnet1.addressPrefix]",
+            "vnetStartAddress": "[steps('Network').vnetSelector.subnets.subnet1.startAddress]"
+        }
+    }
+}

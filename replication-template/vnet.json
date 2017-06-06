@@ -1,0 +1,101 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "location1": {
+            "type": "string"
+        },
+        "location2": {
+            "type": "string"
+        },
+        "virtualNetworkName1": {
+            "type": "string"
+        },
+        "addressPrefix1": {
+            "type": "string"
+        },
+        "subnet1Name1": {
+            "type": "string"
+        },
+        "subnet1Prefix1": {
+            "type": "string"
+        },
+        "gatewaySubnetPrefix1": {
+            "type": "string"
+        },
+        "virtualNetworkName2": {
+            "type": "string"
+        },
+        "addressPrefix2": {
+            "type": "string"
+        },
+        "subnet1Name2": {
+            "type": "string"
+        },
+        "subnet1Prefix2": {
+            "type": "string"
+        },
+        "gatewaySubnetPrefix2": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "apiVersion": "2015-05-01-preview"
+    },
+    "resources": [
+        {
+            "apiVersion": "[variables('apiVersion')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName1')]",
+            "location": "[parameters('location1')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefix1')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet1Name1')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet1Prefix1')]"
+                        }
+                    },
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('gatewaySubnetPrefix1')]"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "[variables('apiVersion')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "name": "[parameters('virtualNetworkName2')]",
+            "location": "[parameters('location2')]",
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[parameters('addressPrefix2')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('subnet1Name2')]",
+                        "properties": {
+                            "addressPrefix": "[parameters('subnet1Prefix2')]"
+                        }
+                    },
+                    {
+                        "name": "GatewaySubnet",
+                        "properties": {
+                            "addressPrefix": "[parameters('gatewaySubnetPrefix2')]"
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
