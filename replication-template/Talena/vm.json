@@ -1,0 +1,169 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json# ",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "vmSize": {
+      "type": "string"
+    },
+    "vmName": {
+      "type": "string"
+    },
+    "username": {
+      "type": "securestring"
+    },
+    "password": {
+      "type": "securestring",
+      "defaultValue": ""
+    },
+    "sshPublicKey": {
+      "type": "securestring",
+      "defaultValue": ""
+    },
+    "authenticationType": {
+      "type": "string"
+    },
+    "nicName": {
+      "type": "string"
+    },
+    "availabilitySetName": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    }
+  },
+  "variables": {
+    "imagePublisher": "OpenLogic",
+    "imageOffer": "CentOS",
+    "imageSKU": "7.3",
+    "imageVersion": "latest",
+    "sizeOfEachDataDiskInGB": 1023,
+    "password_osProfile": {
+      "computername": "[parameters('vmName')]",
+      "adminUsername": "[parameters('username')]",
+      "adminPassword": "[parameters('password')]"
+    },
+    "sshPublicKey_osProfile": {
+      "computername": "[parameters('vmName')]",
+      "adminUsername": "[parameters('username')]",
+      "linuxConfiguration": {
+        "disablePasswordAuthentication": "true",
+        "ssh": {
+          "publicKeys": [
+            {
+              "path": "[concat('/home/', parameters('username'), '/.ssh/authorized_keys')]",
+              "keyData": "[parameters('sshPublicKey')]"
+            }
+          ]
+        }
+      }
+    },
+    "osProfile": "[variables(concat(parameters('authenticationType'), '_osProfile'))]",
+    "diskSizeGB": 1023,
+    "dataDiskHostCaching": "None",
+    "diskArray": [
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 0,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 1,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 2,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 3,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 4,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 5,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 6,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 7,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 8,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      },
+      {
+        "diskSizeGB": "[variables('diskSizeGB')]",
+        "lun": 9,
+        "caching": "[variables('dataDiskHostCaching')]",
+        "createOption": "Empty"
+      }
+    ],
+    "dataDiskCount": 10
+  },
+  "resources": [
+    {
+      "apiVersion": "2016-04-30-preview",
+      "type": "Microsoft.Compute/virtualMachines",
+      "name": "[parameters('vmName')]",
+      "location": "[parameters('location')]",
+      "plan": {
+        "name": "talena_data_management_for_big_data",
+        "publisher": "talena-inc",
+        "product": "talena_inc-preview"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('availabilitySetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('vmSize')]"
+        },
+        "osProfile": "[variables('osProfile')]",
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "talena-inc",
+            "offer": "talena_inc-preview",
+            "sku": "talena_data_management_for_big_data",
+            "version": "latest"
+          },
+          "osDisk": {
+            "createOption": "FromImage",
+          },
+          "dataDisks": "[take(variables('diskArray'), variables('dataDiskCount'))]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('nicName'))]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

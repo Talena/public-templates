@@ -1,0 +1,172 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json# ",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "nodeCount": {
+            "type": "int"
+        },
+        "clusterName": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "nicBasename": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vnetNewOrExisting": {
+            "type": "string"
+        },
+        "vnetName": {
+            "type": "string"
+        },
+        "vnetSubnetName": {
+            "type": "string"
+        },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vnetSubnetAddressPrefix": {
+            "type": "string"
+        },
+        "vnetStartAddress": {
+            "type": "string"
+        },
+        "vnetRGName": {
+            "type": "string"
+        },
+        "scriptsUri": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "vnetDeploymentName": "[concat(parameters('clusterName'), '-vnet')]",
+        "nsgName": "[concat(parameters('clusterName'), '-nsg')]",
+        "publicIPName": "[concat(parameters('clusterName'), '-pip')]",
+        "ipOct": "[split(parameters('vnetStartAddress'), '.')]",
+        "ipOct01": "[concat(variables('ipOct')[0], '.', variables('ipOct')[1], '.')]",
+        "ipOct2": "[int(variables('ipOct')[2])]",
+        "ipOct3": "[int(variables('ipOct')[3])]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2016-06-01",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[concat(variables('publicIPName'), copyIndex())]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "pipLoop",
+                "count": "[parameters('nodeCount')]"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static"
+            }
+        },
+        {
+            "name": "[variables('vnetDeploymentName')]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(parameters('scriptsUri'), 'vnet_', parameters('vnetNewOrExisting'), '.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vnetName": {
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "vnetAddressPrefix": {
+                        "value": "[parameters('vnetAddressPrefix')]"
+                    },
+                    "vnetSubnetName": {
+                        "value": "[parameters('vnetSubnetName')]"
+                    },
+                    "vnetSubnetAddressPrefix": {
+                        "value": "[parameters('vnetSubnetAddressPrefix')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2016-06-01",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "name": "[variables('nsgName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "SSH",
+                        "properties": {
+                            "description": "SSH",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "TalenaUI",
+                        "properties": {
+                            "description": "Talena Management UI",
+                            "protocol": "Tcp",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "8080",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 101,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "apiVersion": "2016-06-01",
+            "type": "Microsoft.Network/networkInterfaces",
+            "name": "[concat(parameters('nicBasename'), copyIndex())]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[concat('Microsoft.Network/publicIPAddresses/', variables('publicIPName'), copyIndex())]",
+                "[concat('Microsoft.Network/networkSecurityGroups/', variables('nsgName'))]",
+                "[concat('Microsoft.Resources/deployments/', variables('vnetDeploymentName'))]"
+            ],
+            "copy": {
+                "name": "nicLoop",
+                "count": "[parameters('nodeCount')]"
+            },
+            "properties": {
+                "networkSecurityGroup": {
+                    "id": "[concat(resourceId('Microsoft.Network/networkSecurityGroups', variables('nsgName')))]"
+                },
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Static",
+                            "privateIPAddress": "[concat(variables('ipOct01'), add(variables('ipOct2'), div(copyIndex(variables('ipOct3')), 256)), '.', mod(copyIndex(variables('ipOct3')), 256))]",
+                            "subnet": {
+                                "id": "[concat(resourceId(parameters('vnetRGName'), 'Microsoft.Network/virtualNetworks', parameters('vnetName')), '/subnets/', parameters('vnetSubnetName'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[concat(resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName')), copyIndex())]"
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

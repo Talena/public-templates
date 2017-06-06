@@ -1,0 +1,264 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "artifactsBaseUrl": {
+            "type": "string",
+            "metadata": {
+                "artifactsBaseUrl": "Base URL of the Publisher Template gallery package"
+            }
+        },
+        "firstName": {
+            "type": "string"
+        },
+        "lastName": {
+            "type": "string"
+        },
+        "company": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "phone": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "licenseKey": {
+            "type": "string"
+        },
+        "clusterName": {
+            "type": "string"
+        },
+        "nodeCount": {
+            "type": "int"
+        },
+        "username": {
+            "type": "securestring"
+        },
+        "password": {
+            "defaultValue": "",
+            "type": "securestring"
+        },
+        "sshPublicKey": {
+            "defaultValue": "",
+            "type": "securestring"
+        },
+        "authenticationType": {
+            "type": "string",
+            "defaultValue": "password",
+            "allowedValues": [
+                "password",
+                "sshPublicKey"
+            ]
+        },
+        "location": {
+            "type": "string"
+        },
+        "vmSize": {
+            "type": "string"
+        },
+        "vnetNewOrExisting": {
+            "type": "string"
+        },
+        "vnetName": {
+            "type": "string"
+        },
+        "vnetSubnetName": {
+            "type": "string"
+        },
+        "vnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vnetSubnetAddressPrefix": {
+            "type": "string",
+            "defaultValue": ""
+        },
+        "vnetStartAddress": {
+            "type": "string"
+        },
+        "vnetRGName": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "scriptsUri": "[concat(parameters('artifactsBaseUrl'), '/')]",
+        "nicBasename": "[concat(parameters('clusterName'),'-nic')]",
+        "vmBasename": "[concat(parameters('clusterName'),'-node')]",
+        "availabilitySetName": "[concat(parameters('clusterName'),'-as')]"
+    },
+    "resources": [
+        {
+            "name": "network",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'network.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "nodeCount": {
+                        "value": "[parameters('nodeCount')]"
+                    },
+                    "clusterName": {
+                        "value": "[parameters('clusterName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "nicBasename": {
+                        "value": "[variables('nicBasename')]"
+                    },
+                    "vnetNewOrExisting": {
+                        "value": "[parameters('vnetNewOrExisting')]"
+                    },
+                    "vnetName": {
+                        "value": "[parameters('vnetName')]"
+                    },
+                    "vnetSubnetName": {
+                        "value": "[parameters('vnetSubnetName')]"
+                    },
+                    "vnetAddressPrefix": {
+                        "value": "[parameters('vnetAddressPrefix')]"
+                    },
+                    "vnetSubnetAddressPrefix": {
+                        "value": "[parameters('vnetSubnetAddressPrefix')]"
+                    },
+                    "vnetStartAddress": {
+                        "value": "[parameters('vnetStartAddress')]"
+                    },
+                    "vnetRGName": {
+                        "value": "[parameters('vnetRGName')]"
+                    },
+                    "scriptsUri": {
+                        "value": "[variables('scriptsUri')]"
+                    }
+                }
+            }
+        },
+        {
+            "apiVersion": "2016-04-30-preview",
+            "name": "[variables('availabilitySetName')]",
+            "type": "Microsoft.Compute/availabilitySets",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Aligned"
+            },
+            "properties": {
+                "platformUpdateDomainCount": 10,
+                "platformFaultDomainCount": 2
+            }
+        },
+        {
+            "name": "[concat('vm', copyIndex())]",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "dependsOn": [
+                "Microsoft.Resources/deployments/network",
+                "[concat('Microsoft.Compute/availabilitySets/', variables('availabilitySetName'))]"
+            ],
+            "copy": {
+                "name": "vmLoop",
+                "count": "[parameters('nodeCount')]"
+            },
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'vm.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "vmSize": {
+                        "value": "[parameters('vmSize')]"
+                    },
+                    "vmName": {
+                        "value": "[concat(variables('vmBasename'), copyIndex())]"
+                    },
+                    "username": {
+                        "value": "[parameters('username')]"
+                    },
+                    "password": {
+                        "value": "[parameters('password')]"
+                    },
+                    "sshPublicKey": {
+                        "value": "[parameters('sshPublicKey')]"
+                    },
+                    "authenticationType": {
+                        "value": "[parameters('authenticationType')]"
+                    },
+                    "nicName": {
+                        "value": "[concat(variables('nicBasename'), copyIndex())]"
+                    },
+                    "availabilitySetName": {
+                        "value": "[variables('availabilitySetName')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    }
+                }
+            }
+        },
+        {
+            "name": "scripts",
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2016-02-01",
+            "dependsOn": [
+                "vmLoop"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[concat(variables('scriptsUri'), 'scripts.json')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "firstName": {
+                        "value": "[parameters('firstName')]"
+                    },
+                    "lastName": {
+                        "value": "[parameters('lastName')]"
+                    },
+                    "company": {
+                        "value": "[parameters('company')]"
+                    },
+                    "email": {
+                        "value": "[parameters('email')]"
+                    },
+                    "phone": {
+                        "value": "[parameters('phone')]"
+                    },
+                    "title": {
+                        "value": "[parameters('title')]"
+                    },
+                    "licenseKey": {
+                        "value": "[parameters('licenseKey')]"
+                    },
+                    "nodeCount": {
+                        "value": "[parameters('nodeCount')]"
+                    },
+                    "vmBasename": {
+                        "value": "[variables('vmBasename')]"
+                    },
+                    "vnetStartAddress": {
+                        "value": "[parameters('vnetStartAddress')]"
+                    },
+                    "vmSize": {
+                        "value": "[parameters('vmSize')]"
+                    },
+                    "location": {
+                        "value": "[parameters('location')]"
+                    },
+                    "scriptsUri": {
+                        "value": "[variables('scriptsUri')]"
+                    }
+                }
+            }
+        }
+    ],
+    "outputs": {}
+}

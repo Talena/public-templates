@@ -1,0 +1,108 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json# ",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "firstName": {
+            "type": "string"
+        },
+        "lastName": {
+            "type": "string"
+        },
+        "company": {
+            "type": "string"
+        },
+        "email": {
+            "type": "string"
+        },
+        "phone": {
+            "type": "string"
+        },
+        "title": {
+            "type": "string"
+        },
+        "licenseKey": {
+            "type": "string"
+        },
+        "nodeCount": {
+            "type": "int"
+        },
+        "vmBasename": {
+            "type": "string"
+        },
+        "vnetStartAddress": {
+            "type": "string"
+        },
+        "vmSize": {
+            "type": "string"
+        },
+        "scriptsUri": {
+            "type": "string"
+        },
+        "location": {
+            "type": "string"
+        }
+    },
+    "variables": {
+        "slaveNodeCount": "[sub(parameters('nodeCount'), 1)]",
+        "slaveNodeScript": "[concat(parameters('scriptsUri'), 'slave.sh')]",
+        "slaveNodePrepareScript": "[concat(parameters('scriptsUri'), 'prepare-slave-node.sh')]",
+        "MasterNodePrepareScript": "[concat(parameters('scriptsUri'), 'prepare-master-node.sh')]",
+        "commonFunctionsScript": "[concat(parameters('scriptsUri'), 'common-funcs.sh')]",
+        "slaveNodeCommand": "[concat('bash slave.sh -startIpAddress ', parameters('vnetStartAddress'), ' -vmBasename ', parameters('vmBasename'), ' -nodeCount ', parameters('nodeCount'), ' -vmSize ', parameters('vmSize'), ' -loopIndex ')]",
+        "masterNodeScript": "[concat(parameters('scriptsUri'), 'master.sh')]",
+        "masterNodeCommand": "[concat('bash master.sh -firstName ', base64(parameters('firstName')), ' -lastName ', base64(parameters('lastName')), ' -company ', base64(parameters('company')), ' -email ', base64(parameters('email')), ' -phone ', base64(parameters('phone')), ' -title ', base64(parameters('title')), ' -licenseKey ', base64(parameters('licenseKey')), ' -startIpAddress ', parameters('vnetStartAddress'), ' -vmBasename ', parameters('vmBasename'), ' -nodeCount ', parameters('nodeCount'), ' -vmSize ', parameters('vmSize'))]"
+    },
+    "resources": [
+        {
+            "apiVersion": "2016-04-30-preview",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmBasename'), copyindex(1), '/slave')]",
+            "location": "[parameters('location')]",
+            "copy": {
+                "name": "slaveLoop",
+                "count": "[variables('slaveNodeCount')]"
+            },
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('slaveNodeScript')]",
+                        "[variables('slaveNodePrepareScript')]",
+                        "[variables('commonFunctionsScript')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[concat(variables('slaveNodeCommand'), copyIndex(1))]"
+                }
+            }
+        },
+        {
+            "apiVersion": "2016-04-30-preview",
+            "type": "Microsoft.Compute/virtualMachines/extensions",
+            "name": "[concat(parameters('vmBasename'), '0', '/master')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "slaveLoop"
+            ],
+            "properties": {
+                "publisher": "Microsoft.Azure.Extensions",
+                "type": "CustomScript",
+                "typeHandlerVersion": "2.0",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                    "fileUris": [
+                        "[variables('masterNodeScript')]",
+                        "[variables('MasterNodePrepareScript')]",
+                        "[variables('commonFunctionsScript')]"
+                    ]
+                },
+                "protectedSettings": {
+                    "commandToExecute": "[variables('masterNodeCommand')]"
+                }
+            }
+        }
+    ]
+}
