@@ -60,7 +60,7 @@ parse_arguments()
 send_email()
 {
     local stringToPrint=
-    local emailSubject="Notification : Talena Azure Cluster Invocation"
+    local emailSubject="Notification : Talena Azure Cluster Deployment"
     while [ "$1" != "" ]; do
         key=$1
         shift
