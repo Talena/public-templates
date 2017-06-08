@@ -130,13 +130,6 @@ prepare_disk()
   return ${ret} 
 }
 
-disable_firewall()
-{
-   log "INFO: Stopping firewalld"
-   systemctl disable firewalld
-   systemctl stop firewalld     
-}
-
 set_hostname_to_fqdn()
 {
     # Set host FQDN
@@ -177,7 +170,6 @@ prepare_talena_node()
     local nodecount=$1
     local vmbasename=$2
 
-    disable_firewall
     set_hostname_to_fqdn
     update_etc_hosts ${nodecount} ${vmbasename} 
     let ret=${ret}+$? 

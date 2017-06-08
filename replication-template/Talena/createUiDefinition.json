@@ -138,7 +138,9 @@
                         "defaultValue": "",
                         "toolTip": "Cluster name",
                         "constraints": {
-                            "required": true
+                            "required": true,
+                            "regex": "^[a-z0-9A-Z]{1,20}$",
+                            "validationMessage": "Only letters and numbers are allowed, and the value must be 1-20 characters long."  
                         }
                     },
                     {
