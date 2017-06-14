@@ -11,7 +11,9 @@
                 "defaultValue": "",
                 "toolTip": "First Name",
                 "constraints": {
-                    "required": true
+                    "required": true,
+                    "regex": "^[a-zA-Z]{1,20}$",
+                    "validationMessage": "Please provide a valid name. Alphabetic characters allowed. Max 20 chars"
                 }
             },
             {
@@ -21,7 +23,9 @@
                 "defaultValue": "",
                 "toolTip": "Last Name",
                 "constraints": {
-                    "required": true
+                    "required": true,
+                    "regex": "^[a-zA-Z]{1,20}$",
+                    "validationMessage": "Please provide a valid last name. Alphabetic characters allowed. Max 20 chars"
                 }
             },
             {
@@ -31,7 +35,9 @@
                 "defaultValue": "",
                 "toolTip": "Company",
                 "constraints": {
-                    "required": true
+                    "required": true,
+                    "regex": "^[a-zA-Z0-9 ]{1,50}$",
+                    "validationMessage": "Please provide a valid company name. Alphanumeric characters allowed. Max 50 chars"
                 }
             },
             {
@@ -53,7 +59,9 @@
                 "defaultValue": "",
                 "toolTip": "Telephone number",
                 "constraints": {
-                    "required": true
+                    "required": true,
+                    "regex": "^[0-9+-()]{1,20}$",
+                    "validationMessage": "Please provide a valid phone"
                 }
             },
             {
@@ -63,7 +71,9 @@
                 "defaultValue": "",
                 "toolTip": "Title",
                 "constraints": {
-                    "required": true
+                    "required": true,
+                    "regex": "^[a-z0-9A-Z ]{1,30}$",
+                    "validationMessage": "Please provide a valid title. Alphanumeric characters allowed."
                 }
             },
             {

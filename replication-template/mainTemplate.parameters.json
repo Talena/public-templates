@@ -1,6 +1,6 @@
 {
     "artifactsBaseUrl": {
-        "value": "https://rgarmsamples.blob.core.windows.net/talenahdi"
+        "value": "https://talenahdistorageaccount.blob.core.windows.net/talenahdi"
     },
     "firstName": {
         "value": "First Name"
@@ -24,7 +24,7 @@
         "value": "1234567890"
     },
     "clusterName": {
-        "value": "rgtalena"
+        "value": "TalenaAzureTest"
     },
     "username": {
         "value": "talena"
