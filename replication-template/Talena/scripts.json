@@ -54,7 +54,7 @@
     },
     "resources": [
         {
-            "apiVersion": "2016-04-30-preview",
+            "apiVersion": "2017-03-30",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('vmBasename'), copyindex(1), '/slave')]",
             "location": "[parameters('location')]",
@@ -80,7 +80,7 @@
             }
         },
         {
-            "apiVersion": "2016-04-30-preview",
+            "apiVersion": "2017-03-30",
             "type": "Microsoft.Compute/virtualMachines/extensions",
             "name": "[concat(parameters('vmBasename'), '0', '/master')]",
             "location": "[parameters('location')]",
